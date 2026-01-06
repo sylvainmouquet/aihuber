@@ -25,7 +25,7 @@ __aihuber__ is compatible with main AI providers :
 
 ### Chat completion (Text generation)
 
-# AI Providers Comparison
+##### AI Providers Comparison
 
 | AI Provider | Buffering sync & async | Streaming (sync & async) | Endpoint                                                                                                                     |
 |-------------|------------------------|--------------------------|------------------------------------------------------------------------------------------------------------------------------|
@@ -41,35 +41,6 @@ __aihuber__ is compatible with main AI providers :
 | AWS Bedrock | ❌ | ❌ | `https://bedrock-runtime.{region}.amazonaws.com/model/{model-id}/invoke`                                                     |
 | Perplexity | ✅ | ✅ | `https://api.perplexity.ai/chat/completions`                                                                                 |
 | xAI (Grok) | ❌ | ❌ | `https://api.x.ai/v1/chat/completions`                                                                                       |
-
-### Embeddings
-
-# AI Providers Comparison
-
-| AI Provider | Embeddings | Endpoint |
-|-------------|-------------------------|--------------------------|----------|
-| OpenAI | ✅                       | `https://api.openai.com/v1/embeddings` |
-| Mistral AI | ✅                       | `https://api.mistral.ai/v1/embeddings` |
-| Anthropic | ❌                       | N/A - No embedding endpoint |
-| Google (Gemini) | ❌                       | `https://generativelanguage.googleapis.com/v1/models/{model}:embedContent` |
-| Cohere | ❌                       | `https://api.cohere.com/v2/embed` |
-| Together AI | ❌                       | `https://api.together.xyz/v1/embeddings` |
-| Replicate | ❌                       | `https://api.replicate.com/v1/predictions` |
-| Hugging Face | ❌                       | `https://api-inference.huggingface.co/models/{model_id}` |
-| Azure OpenAI | ❌                       | `https://{your-resource-name}.openai.azure.com/openai/deployments/{deployment-name}/embeddings?api-version=2024-10-21` |
-| AWS Bedrock | ❌                       | `https://bedrock-runtime.{region}.amazonaws.com/model/{model-id}/invoke` |
-| Perplexity | ❌                       | N/A - No embedding endpoint |
-| xAI (Grok) | ❌                       | N/A - No embedding endpoint |
-
-### Image Generation
-
-# AI Providers Comparison
-
-| AI Provider | Image Generation | Endpoint |
-|-------------|-------------------------|--------------------------|----------|
-| OpenAI | ❌                       | `https://api.openai.com/v1/images/generations` |
-| Mistral AI | ❌                       | `https://api.mistral.ai/v1/images/generations` |
-
 
 ## Legend
 
@@ -94,26 +65,39 @@ uv add aihuber
 ### Basic Usage
 
 ```python
+import asyncio
 import os
-from aihuber import LLM, Message
 
-async def basic_chat_example():
-    """Basic chat interaction with an LLM"""
-    llm = LLM(
-        model="mistral-small-latest",
-        api_key=os.environ['MISTRAL_AI_TOKEN']
-    )
-    
+from dotenv import load_dotenv
+
+from aihuber import LLM, Message
+from pydantic import SecretStr
+
+load_dotenv()
+
+MISTRAL_AI_TOKEN = SecretStr(os.getenv("MISTRAL_AI_TOKEN"))  # type: ignore
+
+
+async def main():
+    """Chat completion example with asynchronous"""
+    llm = LLM(model="mistral:mistral-small-latest", api_key=MISTRAL_AI_TOKEN)
+
     messages = [
         Message(role="system", content="You are a helpful Python developer assistant."),
-        Message(role="user", content="Explain list comprehensions in Python")
+        Message(role="user", content="Give me 10 numbers from 0"),
     ]
-    
-    response = await llm.chat_completion_async(messages)
-    print(f"Response: {response.content}")
-    return response
+
+    async_chat_completion = await llm.chat_completion_async(messages, stream=True)
+    async for chunk in async_chat_completion:
+        print(chunk)
+
+    async_chat_completion = await llm.chat_completion_async(messages, stream=True)
+    async for chunk in async_chat_completion:
+        print(chunk)
 
 
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ## 🐳 Docker Usage
