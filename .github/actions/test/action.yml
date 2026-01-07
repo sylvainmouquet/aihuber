@@ -26,7 +26,7 @@ runs:
       shell: bash
     - name: Run tests
       run: |
-        make test
+        make test tests/unit-tests
       shell: bash
       env:
         PYTHON_VERSION: ${{ matrix.python-version }}
