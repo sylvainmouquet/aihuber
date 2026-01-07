@@ -19,11 +19,7 @@ class PerplexityApi(AbstractAPI):
         }
 
     def _forge_payload(self, messages, stream: bool):
-
-        formatted_messages = [
-            {"role": m.role, "content": m.content} for m in messages
-        ]
-
+        formatted_messages = [{"role": m.role, "content": m.content} for m in messages]
 
         payload = {
             "model": self.model,

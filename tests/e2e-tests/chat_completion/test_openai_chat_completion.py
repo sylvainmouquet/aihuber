@@ -62,7 +62,7 @@ def test_openai_chat_completion_sync_streaming(llm_instance, test_messages):
             "}",
         ]
     elif len(chunks) == 8:
-        assert chunks == ['', '{"', 'message', '":', ' "', 'P', 'ong', '"}']
+        assert chunks == ["", '{"', "message", '":', ' "', "P", "ong", '"}']
 
 
 @pytest.mark.asyncio
