@@ -6,6 +6,28 @@
   },
   "endpoints": [
     {
+      "identifier": "/proxy/grok",
+      "prefix": "/proxy/grok",
+      "match": "/proxy/grok/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "grok-api",
+              "url": "https://api.x.ai",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
       "identifier": "/proxy/openai",
       "prefix": "/proxy/openai",
       "match": "/proxy/openai/**",
