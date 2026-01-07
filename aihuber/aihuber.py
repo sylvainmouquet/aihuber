@@ -1,8 +1,5 @@
 import asyncio
 import contextlib
-import socket
-import threading
-import time
 import weakref
 from typing import Iterator, AsyncIterator
 from typing import Protocol
@@ -10,7 +7,6 @@ from typing import Any
 
 import httpx
 
-from aihuber.providers.abstract_api import AbstractAPI
 from aihuber.providers.anthropic.anthropic_api import AnthropicApi
 from aihuber.providers.cohere.cohere_api import CohereAIApi
 from aihuber.providers.hugging_face.hugging_face_api import HuggingFaceApi
@@ -22,166 +18,30 @@ from aihuber.schema import Message, Response
 from proxycraft import ProxyCraft
 from proxycraft.config.models import Config
 from pydantic import SecretStr, BaseModel
+from pathlib import Path
 
 from aihuber.logger import get_logger
 import nest_asyncio
+import json
 
 nest_asyncio.apply()
 
 logger = get_logger(__name__)
 
-CONFIGURATION = {
-    "version": "1.0",
-    "name": "AIHuber",
-    "server": {"type": "local"},
-    "endpoints": [
-        {
-            "identifier": "/proxy/openai",
-            "prefix": "/proxy/openai",
-            "match": "/proxy/openai/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "openai-api",
-                            "url": "https://api.openai.com",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-        {
-            "identifier": "/proxy/mistral",
-            "prefix": "/proxy/mistral",
-            "match": "/proxy/mistral/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "mistral-api",
-                            "url": "https://api.mistral.ai",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-        {
-            "identifier": "/proxy/anthropic",
-            "prefix": "/proxy/anthropic",
-            "match": "/proxy/anthropic/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "anthropic-api",
-                            "url": "https://api.anthropic.com",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-        {
-            "identifier": "/proxy/cohere",
-            "prefix": "/proxy/cohere",
-            "match": "/proxy/cohere/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "cohere-api",
-                            "url": "https://api.cohere.com",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-        {
-            "identifier": "/proxy/huggingface",
-            "prefix": "/proxy/huggingface",
-            "match": "/proxy/huggingface/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "huggingface-api",
-                            "url": "https://router.huggingface.co/novita/v3",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-        {
-            "identifier": "/proxy/anthropic",
-            "prefix": "/proxy/anthropic",
-            "match": "/proxy/anthropic/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "anthropic-api",
-                            "url": "https://api.anthropic.com",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-        {
-            "identifier": "/proxy/perplexity",
-            "prefix": "/proxy/perplexity",
-            "match": "/proxy/perplexity/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "perplexity-api",
-                            "url": "https://api.perplexity.ai",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-        {
-            "identifier": "/proxy/together",
-            "prefix": "/proxy/together",
-            "match": "/proxy/together/**",
-            "backends": [
-                {
-                    "https": [
-                        {
-                            "id": "together-api",
-                            "url": "https://api.together.xyz",
-                            "ssl": True,
-                            "methods": ["POST"],
-                        }
-                    ]
-                }
-            ],
-            "upstream": {"proxy": {"enabled": True}},
-        },
-    ],
-}
+current_dir = Path(__file__).parent
+config_path = current_dir / "proxy.json"
+with open(config_path, "r") as f:
+    CONFIGURATION = json.load(f)
 
+
+PROVIDER_MAP = {
+    "mistral:": MistralAIApi,
+    "cohere:": CohereAIApi,
+    "togetherai:": TogetherAIApi,
+    "perplexity:": PerplexityApi,
+    "huggingface:": HuggingFaceApi,
+    "anthropic:": AnthropicApi,
+}
 
 class AudioResponse:
     def __init__(self): ...
@@ -238,11 +98,6 @@ class LLM:
         # Initialize the proxy
         self.proxycraft: ProxyCraft = ProxyCraft(config=Config(**CONFIGURATION))
 
-        # Start proxy in a separate daemon thread
-        self.proxy_thread = threading.Thread(
-            target=self.proxycraft.serve, daemon=True, name="ProxyCraftThread"
-        )
-
         self.embeddings = self.EmbeddingsAPI(self)
         self.audio = self.AudioAPI(self)
         self._initialized = False
@@ -259,40 +114,6 @@ class LLM:
 
         self.transport = httpx.ASGITransport(app=self.proxycraft.app)
         weakref.finalize(self, self._cleanup_sync, self.proxycraft, self.loop)
-
-        def wait_port_available(host: str, port: int):
-            def _socket_test_connection():
-                try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    s.settimeout(1)  # Add timeout to avoid blocking indefinitely
-                    result = s.connect_ex((host, port))
-                    s.close()
-                    return result == 0  # 0 means connection successful
-                except Exception:
-                    return False
-
-            while _socket_test_connection():
-                logger.info(f"waiting for port {port}")
-                time.sleep(1)
-
-        def check_port_available(host: str, port: int):
-            def _socket_test_connection():
-                try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    s.settimeout(1)  # Add timeout to avoid blocking indefinitely
-                    result = s.connect_ex((host, port))
-                    s.close()
-                    return result == 1
-                except Exception:
-                    return True
-
-            while _socket_test_connection():
-                logger.info(f"port {port} is not available")
-                time.sleep(1)
-
-        check_port_available(host="0.0.0.0", port=8080)
-        self.proxy_thread.start()
-        wait_port_available(host="0.0.0.0", port=8080)
 
     async def close(self):
         """Async cleanup method"""
@@ -322,9 +143,6 @@ class LLM:
                     ...
                     # If all else fails, at least log the issue
                     # print("Warning: Could not properly close async resources")
-        if hasattr(self, "proxy_thread"):
-            self.proxy_thread.join(timeout=1)
-            # del self.proxycraft
 
     @staticmethod
     def _cleanup_sync(proxy: Any, loop: asyncio.AbstractEventLoop):
@@ -351,33 +169,11 @@ class LLM:
             self, messages: list[Message]
         ) -> Response: ...
 
-    def _get_api(self) -> AbstractAPI | None:
-        """Get the appropriate API instance for the current model."""
-
-        if self.model.startswith("mistral:"):
-            return MistralAIApi(
-                model=self.model, token=self.api_key, app=self.proxycraft.app
-            )
-        elif self.model.startswith("cohere:"):
-            return CohereAIApi(
-                model=self.model, token=self.api_key, app=self.proxycraft.app
-            )
-        elif self.model.startswith("togetherai:"):
-            return TogetherAIApi(
-                model=self.model, token=self.api_key, app=self.proxycraft.app
-            )
-        elif self.model.startswith("perplexity:"):
-            return PerplexityApi(
-                model=self.model, token=self.api_key, app=self.proxycraft.app
-            )
-        elif self.model.startswith("huggingface:"):
-            return HuggingFaceApi(
-                model=self.model, token=self.api_key, app=self.proxycraft.app
-            )
-        elif self.model.startswith("anthropic:"):
-            return AnthropicApi(
-                model=self.model, token=self.api_key, app=self.proxycraft.app
-            )
+    def _get_api(self):
+        """Factory to get provider-specific API."""
+        for prefix, api_class in PROVIDER_MAP.items():
+            if self.model.startswith(prefix):
+                return api_class(model=self.model, token=self.api_key, app=self.proxycraft.app)
         return OpenAIApi(model=self.model, token=self.api_key, app=self.proxycraft.app)
 
     def chat_completion(
@@ -392,10 +188,6 @@ class LLM:
             return api.sync_chat_completion_streaming(messages)
         func = api.async_chat_completion_buffering
 
-        # if self._initialized:
-        #    asyncio.set_event_loop(self.loop)
-        #    return self.loop.run_until_complete(func(messages=messages))
-        # else:
         asyncio.set_event_loop(self.loop)
         return self.loop.run_until_complete(func(messages=messages))
 

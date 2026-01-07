@@ -1,9 +1,9 @@
-import json
-
 from pydantic import SecretStr
 
 from aihuber.providers.abstract_api import AbstractAPI
+from aihuber.logger import get_logger
 
+logger = get_logger(__name__)
 
 class AnthropicApi(AbstractAPI):
     def __init__(self, model, token: SecretStr, app):
@@ -37,15 +37,24 @@ class AnthropicApi(AbstractAPI):
         payload = self._forge_payload(messages=messages, stream=stream)
 
         async for response in self._session_client(
-            app=self.app,
-            method=self.completion_method,
-            url=self.completion_url,
-            headers=headers,
-            payload=payload,
-            stream=stream,
+                app=self.app,
+                method=self.completion_method,
+                url=self.completion_url,
+                headers=headers,
+                payload=payload,
+                stream=stream,
         ):
+            # Anthropic returns a JSON object.
+            # The text is inside content[0]['text']
             resp_json = response.json()
-            content = json.loads(resp_json["content"][0]["text"])
-            return content
+
+            try:
+                # 1. Access the first content block
+                # 2. Extract the 'text' field. No json.loads() needed for standard text.
+                content = resp_json["content"][0]["text"]
+                return content
+            except (KeyError, IndexError) as e:
+                logger.error(f"Unexpected Anthropic response structure: {resp_json}")
+                raise ValueError(f"Failed to parse Anthropic response: {e}")
 
         raise ValueError("No response received from session client")

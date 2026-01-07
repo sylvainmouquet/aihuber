@@ -1,0 +1,163 @@
+{
+  "version": "1.0",
+  "name": "AIHuber",
+  "server": {
+    "type": "local"
+  },
+  "endpoints": [
+    {
+      "identifier": "/proxy/openai",
+      "prefix": "/proxy/openai",
+      "match": "/proxy/openai/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "openai-api",
+              "url": "https://api.openai.com",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "/proxy/mistral",
+      "prefix": "/proxy/mistral",
+      "match": "/proxy/mistral/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "mistral-api",
+              "url": "https://api.mistral.ai",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "/proxy/anthropic",
+      "prefix": "/proxy/anthropic",
+      "match": "/proxy/anthropic/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "anthropic-api",
+              "url": "https://api.anthropic.com",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "/proxy/cohere",
+      "prefix": "/proxy/cohere",
+      "match": "/proxy/cohere/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "cohere-api",
+              "url": "https://api.cohere.com",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "/proxy/huggingface",
+      "prefix": "/proxy/huggingface",
+      "match": "/proxy/huggingface/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "huggingface-api",
+              "url": "https://router.huggingface.co/novita/v3",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "/proxy/perplexity",
+      "prefix": "/proxy/perplexity",
+      "match": "/proxy/perplexity/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "perplexity-api",
+              "url": "https://api.perplexity.ai",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "/proxy/together",
+      "prefix": "/proxy/together",
+      "match": "/proxy/together/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "together-api",
+              "url": "https://api.together.xyz",
+              "ssl": true,
+              "methods": ["POST"]
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    }
+  ]
+}
