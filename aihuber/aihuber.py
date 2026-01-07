@@ -112,7 +112,6 @@ class LLM:
             asyncio.set_event_loop(self.loop)
             self.loop.run_until_complete(self.proxycraft.startup_event())
 
-        self.transport = httpx.ASGITransport(app=self.proxycraft.app)
         weakref.finalize(self, self._cleanup_sync, self.proxycraft, self.loop)
 
     async def close(self):
