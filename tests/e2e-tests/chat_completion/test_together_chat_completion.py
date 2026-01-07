@@ -14,7 +14,7 @@ TOGETHER_TOKEN = SecretStr(os.getenv("TOGETHER_TOKEN"))  # type: ignore
 @pytest.fixture
 def llm_instance():
     return LLM(
-        model="together:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+        model="togetherai:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
         api_key=TOGETHER_TOKEN.get_secret_value(),
     )
 

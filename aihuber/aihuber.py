@@ -39,6 +39,7 @@ PROVIDER_MAP = {
     "perplexity:": PerplexityApi,
     "huggingface:": HuggingFaceApi,
     "anthropic:": AnthropicApi,
+    "openai": OpenAIApi
 }
 
 class AudioResponse:
