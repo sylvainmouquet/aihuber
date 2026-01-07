@@ -39,8 +39,9 @@ PROVIDER_MAP = {
     "perplexity:": PerplexityApi,
     "huggingface:": HuggingFaceApi,
     "anthropic:": AnthropicApi,
-    "openai": OpenAIApi
+    "openai": OpenAIApi,
 }
+
 
 class AudioResponse:
     def __init__(self): ...
@@ -180,7 +181,9 @@ class LLM:
         """Factory to get provider-specific API."""
         for prefix, api_class in PROVIDER_MAP.items():
             if self.model.startswith(prefix):
-                return api_class(model=self.model, token=self.api_key, app=self.proxycraft.app)
+                return api_class(
+                    model=self.model, token=self.api_key, app=self.proxycraft.app
+                )
         return OpenAIApi(model=self.model, token=self.api_key, app=self.proxycraft.app)
 
     def chat_completion(

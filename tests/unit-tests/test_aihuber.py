@@ -1,6 +1,7 @@
-from aihuber import LLM, Message
+from aihuber import LLM
 from aihuber.aihuber import PROVIDER_MAP
 import pytest
+
 
 def test_llm_init_with_valid_prefix():
     valid_prefix = list(PROVIDER_MAP.keys())[0]
@@ -22,12 +23,13 @@ def test_llm_init_with_invalid_prefix():
 
 
 def test_llm_chat_completion_logic(mocker):
-    mocker.patch("aihuber.providers.mistralai.mistralai_api.MistralAIApi._buffered_request", return_value="Success")
+    mocker.patch(
+        "aihuber.providers.mistralai.mistralai_api.MistralAIApi._buffered_request",
+        return_value="Success",
+    )
 
     llm = LLM(model="mistral:large")
-    messages = [
-        {"role": "user", "content": "Hello"}
-    ]
+    messages = [{"role": "user", "content": "Hello"}]
 
     response = llm.chat_completion(messages=messages)
     assert response == "Success"

@@ -6,6 +6,7 @@ from aihuber.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class AnthropicApi(AbstractAPI):
     def __init__(self, model, token: SecretStr, app):
         super().__init__(app=app, completion_url="/proxy/anthropic/v1/messages")
@@ -39,12 +40,12 @@ class AnthropicApi(AbstractAPI):
         payload = self._forge_payload(messages=messages, stream=stream)
 
         async for response in self._session_client(
-                app=self.app,
-                method=self.completion_method,
-                url=self.completion_url,
-                headers=headers,
-                payload=payload,
-                stream=stream,
+            app=self.app,
+            method=self.completion_method,
+            url=self.completion_url,
+            headers=headers,
+            payload=payload,
+            stream=stream,
         ):
             resp_json = response.json()
 

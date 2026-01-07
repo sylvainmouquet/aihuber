@@ -1,7 +1,11 @@
 import logging
 import pytest
 import structlog
-from aihuber.logger import setup_structlog, get_logger  # Remplacez par le nom de votre fichier
+from aihuber.logger import (
+    setup_structlog,
+    get_logger,
+)  # Remplacez par le nom de votre fichier
+
 
 @pytest.fixture(autouse=True)
 def clean_logging():
@@ -13,6 +17,7 @@ def clean_logging():
         root.removeHandler(handler)
     yield
 
+
 def test_logger_normal():
     setup_structlog(log_level="DEBUG", json_logs=False)
     logger = get_logger("aihuber")
@@ -23,6 +28,7 @@ def test_logger_normal():
     logger.error("Demo")
     logger.critical("Demo")
 
+
 def test_logger_json():
     setup_structlog(log_level="DEBUG", json_logs=True)
     logger = get_logger("aihuber")
@@ -32,6 +38,7 @@ def test_logger_json():
     logger.warn("Demo")
     logger.error("Demo")
     logger.critical("Demo")
+
 
 """ 
 
