@@ -21,8 +21,14 @@ def llm_instance():
 
 @pytest.fixture
 def test_messages(stream: bool = False):
+
     return [
-        Message(role="system", content="Return a JSON object."),
+        Message(role="system", content=
+        ("You must respond with raw JSON only. "
+            "Do not use Markdown. "
+            "Do not wrap the response in ``` fences. "
+            "Do not include explanations or comments. "
+            "Return a single valid JSON object.")),
         Message(
             role="user",
             content="Ping. Return Pong in JSON format with the json key message. Only 11 characters. Dont shrink pong",
@@ -33,7 +39,7 @@ def test_messages(stream: bool = False):
 def test_perplexity_chat_completion_sync(llm_instance, test_messages):
     """Test streaming chat completion with Perplexity."""
     response = llm_instance.chat_completion(test_messages)
-    assert "Pong" in response
+    assert {'message': 'Pong'} == response
 
 
 def test_perplexity_chat_completion_sync_streaming(llm_instance, test_messages):
@@ -51,7 +57,7 @@ def test_perplexity_chat_completion_sync_streaming(llm_instance, test_messages):
 async def test_perplexity_chat_completion_async(llm_instance, test_messages):
     """Test asynchronous chat completion with Perplexity."""
     response = await llm_instance.chat_completion_async(test_messages)
-    assert "Pong" in response
+    assert  {'message': 'Pong'} == response
 
 
 @pytest.mark.asyncio

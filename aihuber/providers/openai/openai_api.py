@@ -67,6 +67,7 @@ class OpenAIApi(AbstractAPI):
         return {
             "Authorization": f"Bearer {self.token.get_secret_value()}",
             "Content-Type": "application/json",
+            "Accept": "application/json" if not stream else "text/event-stream",
         }
 
     def _forge_payload(self, messages, stream: bool):
