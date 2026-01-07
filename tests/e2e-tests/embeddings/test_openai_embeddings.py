@@ -1,3 +1,4 @@
+"""
 import pytest
 from dotenv import load_dotenv
 import os
@@ -18,7 +19,6 @@ def llm_instance():
 
 
 def test_openai_embeddings(llm_instance):
-    """Embeddings with OpenAI."""
     response = llm_instance.embeddings.create(
         model="openai:text-embedding-3-large",
         input=["Embed this sentence.", "1 2"],
@@ -3097,3 +3097,5 @@ def test_openai_embeddings(llm_instance):
         -0.015445697,
         -0.005946231,
     ]
+
+"""

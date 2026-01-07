@@ -71,8 +71,9 @@ class LLM:
             self.speech = SpeechAPI(self)
 
     class EmbeddingsAPI:
-        def __init__(self, parent):
+        def __init__(self, parent, loop):
             self.parent = parent
+            self.loop = loop
 
         def create(self, model: str, inputs: list[str]) -> dict:
             """Handle synchronous (buffered and streaming) chat completion requests."""
@@ -80,8 +81,9 @@ class LLM:
             if api is None:
                 raise ValueError("Model not supported")
 
+            asyncio.set_event_loop(self.loop)
             func = api.embeddings
-            return func(model=model, inputs=inputs)
+            return self.loop.run_until_complete(func(model=model, inputs=inputs))
 
     def __init__(
         self,
@@ -104,7 +106,6 @@ class LLM:
         # Initialize the proxy
         self.proxycraft: ProxyCraft = ProxyCraft(config=Config(**CONFIGURATION))
 
-        self.embeddings = self.EmbeddingsAPI(self)
         self.audio = self.AudioAPI(self)
         self._initialized = False
         try:
@@ -118,6 +119,7 @@ class LLM:
             asyncio.set_event_loop(self.loop)
             self.loop.run_until_complete(self.proxycraft.startup_event())
 
+        self.embeddings = self.EmbeddingsAPI(self, loop=self.loop)
         weakref.finalize(self, self._cleanup_sync, self.proxycraft, self.loop)
 
     async def close(self):
