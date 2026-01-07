@@ -22,3 +22,5 @@ jobs:
         with:
           ref: ${{ github.ref }}
       - uses: ./.github/actions/test
+        with:
+          python-version: ${{ matrix.python-version }}
