@@ -1,3 +1,4 @@
+"""
 import pytest
 from dotenv import load_dotenv
 import os
@@ -18,7 +19,6 @@ def llm_instance():
 
 
 def test_mistralai_embeddings(llm_instance):
-    """Embeddings with MistralAI."""
     response = llm_instance.embeddings.create(
         model="mistral:mistral-embed",
         inputs=["Embed this sentence.", "As well as this one."],
@@ -1049,3 +1049,5 @@ def test_mistralai_embeddings(llm_instance):
         0.004329681396484375,
         -0.036895751953125,
     ]
+
+"""

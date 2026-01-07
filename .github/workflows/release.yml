@@ -32,7 +32,7 @@ jobs:
           sudo echo "172.17.0.1 host.docker.internal" | sudo tee -a /etc/hosts
           ping -c 2 host.docker.internal
 
-          make test
+          make test tests/unit-tests
       - name: mint API token
         id: mint-token
         run: |

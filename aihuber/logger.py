@@ -18,6 +18,10 @@ def setup_structlog(
         json_logs: Whether to output logs in JSON format
         include_timestamp: Whether to include timestamps in logs
     """
+    level = getattr(logging, log_level.upper())
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
 
     # Configure standard library logging
     logging.basicConfig(

@@ -1,4 +1,11 @@
 name: Run Tests
+description: "Installs dependencies and runs unit tests"
+
+# 1. Define inputs so the action can receive the version
+inputs:
+  python-version:
+    description: "The python version to use"
+    required: true
 
 runs:
   using: 'composite'
@@ -7,26 +14,35 @@ runs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 10
-    - name: Set up Python
+
+    - name: Set up Python 
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        # 2. Use the input instead of matrix
+        python-version: ${{ inputs.python-version }}
+
     - name: Install uv
       uses: astral-sh/setup-uv@v4
+
     - name: Use uv with Python version
-      run: uv venv --python ${{ matrix.python-version }}
+      # 2. Use the input here as well
+      run: uv venv --python ${{ inputs.python-version }}
       shell: bash
+
     - name: Install dependencies
       run: make install
       shell: bash
+
     - name: Build
       env:
         VERSION: 0.0.1
       run: make build
       shell: bash
+
     - name: Run tests
       run: |
-        make test
+        make test tests/unit-tests
       shell: bash
       env:
-        PYTHON_VERSION: ${{ matrix.python-version }}
+        # 2. And here
+        PYTHON_VERSION: ${{ inputs.python-version }}

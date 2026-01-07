@@ -57,9 +57,9 @@ install-local:
 test:
 	@echo "Modified arguments: $(COMMAND_ARGS)"
 	@if [ -z "$(COMMAND_ARGS)" ]; then \
-		uv run --python $${PYTHON_VERSION:-3.13} pytest -v --log-cli-level=INFO; \
+		uv run --python $${PYTHON_VERSION:-3.13} pytest -v -s --log-cli-level=INFO; \
 	else \
-		uv run --python $${PYTHON_VERSION:-3.13} pytest -v --log-cli-level=INFO $(COMMAND_ARGS); \
+		uv run --python $${PYTHON_VERSION:-3.13} pytest -v -s --log-cli-level=INFO $(COMMAND_ARGS); \
 	fi
 
 # Lint command
