@@ -91,11 +91,6 @@ async def main():
     async for chunk in async_chat_completion:
         print(chunk)
 
-    async_chat_completion = await llm.chat_completion_async(messages, stream=True)
-    async for chunk in async_chat_completion:
-        print(chunk)
-
-
 if __name__ == "__main__":
     asyncio.run(main())
 ```
