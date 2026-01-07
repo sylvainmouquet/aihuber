@@ -1,4 +1,5 @@
 from pydantic import SecretStr
+import json
 
 from aihuber.providers.abstract_api import AbstractAPI
 from aihuber.logger import get_logger
@@ -24,10 +25,11 @@ class AnthropicApi(AbstractAPI):
         formatted_messages = [
             {"role": message.role, "content": message.content} for message in messages
         ]
+
         return {
             "model": self.model,
             "messages": formatted_messages,
-            "max_tokens": 256,
+            "max_tokens": 1024,
             "stream": stream,
         }
 
@@ -44,15 +46,14 @@ class AnthropicApi(AbstractAPI):
                 payload=payload,
                 stream=stream,
         ):
-            # Anthropic returns a JSON object.
-            # The text is inside content[0]['text']
             resp_json = response.json()
 
             try:
-                # 1. Access the first content block
-                # 2. Extract the 'text' field. No json.loads() needed for standard text.
-                content = resp_json["content"][0]["text"]
-                return content
+                raw_text = resp_json["content"][0]["text"]
+                try:
+                    return json.loads(raw_text)
+                except json.JSONDecodeError:
+                    return raw_text
             except (KeyError, IndexError) as e:
                 logger.error(f"Unexpected Anthropic response structure: {resp_json}")
                 raise ValueError(f"Failed to parse Anthropic response: {e}")
