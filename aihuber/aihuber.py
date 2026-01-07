@@ -228,13 +228,11 @@ class LLM:
         self,
         model: str,
         api_key: str | SecretStr | None = None,
-        base_url: str | None = None,
         debug: bool = False,
         response_format: type[BaseModel] | None = None,
     ):
         self.model = model
         self.api_key = api_key if isinstance(api_key, SecretStr) else SecretStr(api_key)
-        self.base_url = base_url
         self.response_format = response_format
 
         # Initialize the proxy
