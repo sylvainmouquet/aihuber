@@ -95,14 +95,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## 🐳 Docker Usage
-
-
-```bash
-docker build -t aihuber -f dockerfiles/aihuber.Dockerfile .
-docker run  -p 8080:8080 aihuber
-```
-
 ## 📄 License
 
 [MIT](LICENSE)
