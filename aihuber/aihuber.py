@@ -5,8 +5,6 @@ from typing import Iterator, AsyncIterator
 from typing import Protocol
 from typing import Any
 
-import httpx
-
 from aihuber.providers.anthropic.anthropic_api import AnthropicApi
 from aihuber.providers.cohere.cohere_api import CohereAIApi
 from aihuber.providers.hugging_face.hugging_face_api import HuggingFaceApi
@@ -91,6 +89,13 @@ class LLM:
         debug: bool = False,
         response_format: type[BaseModel] | None = None,
     ):
+        if not any(model.startswith(prefix) for prefix in PROVIDER_MAP):
+            allowed_prefixes = ", ".join(f"'{p}'" for p in PROVIDER_MAP.keys())
+            raise ValueError(
+                f"Invalid model name '{model}'. "
+                f"The model must start with one of the following prefixes: {allowed_prefixes}"
+            )
+
         self.model = model
         self.api_key = api_key if isinstance(api_key, SecretStr) else SecretStr(api_key)
         self.response_format = response_format
