@@ -12,6 +12,7 @@ from aihuber.providers.mistralai.mistralai_api import MistralAIApi
 from aihuber.providers.openai.openai_api import OpenAIApi
 from aihuber.providers.perplexity.perplexity_api import PerplexityApi
 from aihuber.providers.togetherai.togetherai_api import TogetherAIApi
+from aihuber.providers.xai_grok.grok_api import GrokAIApi
 from aihuber.schema import Message, Response
 from proxycraft import ProxyCraft
 from proxycraft.config.models import Config
@@ -40,6 +41,7 @@ PROVIDER_MAP = {
     "huggingface:": HuggingFaceApi,
     "anthropic:": AnthropicApi,
     "openai": OpenAIApi,
+    "grok:": GrokAIApi,
 }
 
 
